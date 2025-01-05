@@ -6,6 +6,7 @@ from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from rest_framework.authtoken.models import Token
 
 from .forms import CustomUserCreationForm
 
@@ -42,7 +43,10 @@ def api_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            response = JsonResponse({"message": "Login successful"})
+            token, created = Token.objects.get_or_create(user=user)
+            response = JsonResponse(
+                {"message": "Login successful", "token": token.key}
+            )
         else:
             response = JsonResponse(
                 {"error": "Invalid credentials"}, status=400
